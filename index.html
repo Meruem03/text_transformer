@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Transformer</title>
+    <!-- Tailwind CSS CDN for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom font for a clean look */
+        body {
+            font-family: "Inter", sans-serif;
+            background-color: #f0f4f8; /* Light gray background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 2.5rem; /* Increased padding */
+            border-radius: 1rem; /* More rounded corners */
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); /* Softer shadow */
+            max-width: 90%;
+            width: 500px;
+            text-align: center;
+            border: 1px solid #e2e8f0; /* Subtle border */
+        }
+        textarea {
+            resize: vertical; /* Allow vertical resizing */
+            min-height: 100px; /* Minimum height for textarea */
+        }
+        button {
+            transition: all 0.2s ease-in-out; /* Smooth transition for hover effects */
+        }
+        button:hover {
+            transform: translateY(-2px); /* Slight lift on hover */
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); /* Enhanced shadow on hover */
+        }
+    </style>
+</head>
+<body>
+    <div class="container flex flex-col space-y-6">
+        <h1 class="text-3xl font-bold text-gray-800 mb-4">Text Transformer</h1>
+
+        <div class="flex flex-col items-start w-full">
+            <label for="inputText" class="text-lg font-medium text-gray-700 mb-2">Enter your text:</label>
+            <textarea
+                id="inputText"
+                class="w-full p-4 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-gray-800 outline-none"
+                placeholder="Type your text here..."
+                rows="5"
+            ></textarea>
+        </div>
+
+        <button
+            id="transformButton"
+            class="w-full bg-blue-600 text-white py-3 px-6 rounded-lg text-lg font-semibold hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 shadow-md"
+        >
+            Transform Text
+        </button>
+
+        <div class="flex flex-col items-start w-full mt-6">
+            <label for="outputText" class="text-lg font-medium text-gray-700 mb-2">Transformed Text:</label>
+            <textarea
+                id="outputText"
+                class="w-full p-4 border border-gray-300 rounded-lg bg-gray-100 text-gray-800 cursor-not-allowed outline-none"
+                rows="5"
+                readonly
+                placeholder="Transformed text will appear here..."
+            ></textarea>
+        </div>
+
+        <button
+            id="copyButton"
+            class="w-full bg-green-600 text-white py-3 px-6 rounded-lg text-lg font-semibold hover:bg-green-700 focus:outline-none focus:ring-4 focus:ring-green-300 shadow-md mt-4"
+        >
+            Copy to Clipboard
+        </button>
+
+        <div id="messageBox" class="mt-4 p-3 bg-blue-100 border border-blue-400 text-blue-700 rounded-lg hidden">
+            <!-- Message will be displayed here -->
+        </div>
+    </div>
+
+    <script>
+        // Get references to the DOM elements
+        const inputTextElement = document.getElementById('inputText');
+        const transformButton = document.getElementById('transformButton');
+        const outputTextElement = document.getElementById('outputText');
+        const copyButton = document.getElementById('copyButton');
+        const messageBox = document.getElementById('messageBox');
+
+        /**
+         * Shows a temporary message in the message box.
+         * @param {string} message - The message to display.
+         * @param {string} type - The type of message (e.g., 'success', 'error', 'info').
+         */
+        function showMessage(message, type = 'info') {
+            messageBox.textContent = message;
+            messageBox.classList.remove('hidden', 'bg-blue-100', 'bg-green-100', 'bg-red-100', 'border-blue-400', 'border-green-400', 'border-red-400', 'text-blue-700', 'text-green-700', 'text-red-700');
+
+            if (type === 'success') {
+                messageBox.classList.add('bg-green-100', 'border-green-400', 'text-green-700');
+            } else if (type === 'error') {
+                messageBox.classList.add('bg-red-100', 'border-red-400', 'text-red-700');
+            } else { // Default to info
+                messageBox.classList.add('bg-blue-100', 'border-blue-400', 'text-blue-700');
+            }
+
+            messageBox.classList.remove('hidden');
+
+            // Hide the message after 3 seconds
+            setTimeout(() => {
+                messageBox.classList.add('hidden');
+            }, 3000);
+        }
+
+        /**
+         * Transforms the input text by lowercasing it and replacing spaces/periods with hyphens.
+         */
+        function transformText() {
+            const originalText = inputTextElement.value;
+
+            // Convert to lowercase
+            let transformedText = originalText.toLowerCase();
+
+            // Replace spaces with hyphens
+            transformedText = transformedText.replace(/ /g, '-');
+
+            // Replace periods with hyphens
+            transformedText = transformedText.replace(/\./g, '-');
+
+            // Remove any consecutive hyphens (e.g., "hello--world" becomes "hello-world")
+            transformedText = transformedText.replace(/-+/g, '-');
+
+            // Remove leading/trailing hyphens if any (e.g., "-hello-world-" becomes "hello-world")
+            transformedText = transformedText.replace(/^-|-$/g, '');
+
+
+            outputTextElement.value = transformedText;
+            showMessage("Text transformed successfully!", "success");
+        }
+
+        /**
+         * Copies the transformed text to the clipboard.
+         */
+        function copyToClipboard() {
+            const textToCopy = outputTextElement.value;
+            if (textToCopy) {
+                // Create a temporary textarea element to copy the text
+                const tempTextArea = document.createElement('textarea');
+                tempTextArea.value = textToCopy;
+                document.body.appendChild(tempTextArea);
+                tempTextArea.select();
+                try {
+                    const successful = document.execCommand('copy');
+                    if (successful) {
+                        showMessage('Copied to clipboard!', 'success');
+                    } else {
+                        showMessage('Failed to copy text.', 'error');
+                    }
+                } catch (err) {
+                    showMessage('Error copying text: ' + err, 'error');
+                }
+                document.body.removeChild(tempTextArea); // Clean up the temporary textarea
+            } else {
+                showMessage('No text to copy!', 'info');
+            }
+        }
+
+        // Add event listeners to the buttons
+        transformButton.addEventListener('click', transformText);
+        copyButton.addEventListener('click', copyToClipboard);
+
+        // Optional: Transform on 'Enter' key press in the input text area
+        inputTextElement.addEventListener('keypress', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault(); // Prevent new line in textarea
+                transformText();
+            }
+        });
+    </script>
+</body>
+</html>
