@@ -38,6 +38,11 @@
             transform: translateY(-2px); /* Slight lift on hover */
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); /* Enhanced shadow on hover */
         }
+        .char-counter {
+            font-size: 0.875rem; /* Small text size */
+            color: #6b7280; /* Gray text color */
+            margin-left: 0.5rem; /* Space from the label */
+        }
     </style>
 </head>
 <body>
@@ -45,7 +50,10 @@
         <h1 class="text-3xl font-bold text-gray-800 mb-4">Text Transformer</h1>
 
         <div class="flex flex-col items-start w-full">
-            <label for="inputText" class="text-lg font-medium text-gray-700 mb-2">Enter your text:</label>
+            <label for="inputText" class="text-lg font-medium text-gray-700 mb-2">
+                Enter your text:
+                <span id="inputCharCount" class="char-counter">(0 characters)</span>
+            </label>
             <textarea
                 id="inputText"
                 class="w-full p-4 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-gray-800 outline-none"
@@ -62,7 +70,10 @@
         </button>
 
         <div class="flex flex-col items-start w-full mt-6">
-            <label for="outputText" class="text-lg font-medium text-gray-700 mb-2">Transformed Text:</label>
+            <label for="outputText" class="text-lg font-medium text-gray-700 mb-2">
+                Transformed Text:
+                <span id="outputCharCount" class="char-counter">(0 characters)</span>
+            </label>
             <textarea
                 id="outputText"
                 class="w-full p-4 border border-gray-300 rounded-lg bg-gray-100 text-gray-800 cursor-not-allowed outline-none"
@@ -91,6 +102,8 @@
         const outputTextElement = document.getElementById('outputText');
         const copyButton = document.getElementById('copyButton');
         const messageBox = document.getElementById('messageBox');
+        const inputCharCount = document.getElementById('inputCharCount');
+        const outputCharCount = document.getElementById('outputCharCount');
 
         /**
          * Shows a temporary message in the message box.
@@ -118,6 +131,16 @@
         }
 
         /**
+         * Updates the character count for a given textarea and display element.
+         * @param {HTMLTextAreaElement} textarea - The textarea element.
+         * @param {HTMLElement} countElement - The span element to display the count.
+         */
+        function updateCharCount(textarea, countElement) {
+            const count = textarea.value.length;
+            countElement.textContent = `(${count} characters)`;
+        }
+
+        /**
          * Transforms the input text by lowercasing it and replacing spaces/periods with hyphens.
          */
         function transformText() {
@@ -140,6 +163,7 @@
 
 
             outputTextElement.value = transformedText;
+            updateCharCount(outputTextElement, outputCharCount); // Update output count after transformation
             showMessage("Text transformed successfully!", "success");
         }
 
@@ -174,12 +198,22 @@
         transformButton.addEventListener('click', transformText);
         copyButton.addEventListener('click', copyToClipboard);
 
+        // Add input event listeners for character counters
+        inputTextElement.addEventListener('input', () => updateCharCount(inputTextElement, inputCharCount));
+        outputTextElement.addEventListener('input', () => updateCharCount(outputTextElement, outputCharCount)); // Though readonly, good practice for consistency
+
         // Optional: Transform on 'Enter' key press in the input text area
         inputTextElement.addEventListener('keypress', (event) => {
             if (event.key === 'Enter') {
                 event.preventDefault(); // Prevent new line in textarea
                 transformText();
             }
+        });
+
+        // Initial character count update on page load
+        window.addEventListener('load', () => {
+            updateCharCount(inputTextElement, inputCharCount);
+            updateCharCount(outputTextElement, outputCharCount);
         });
     </script>
 </body>
